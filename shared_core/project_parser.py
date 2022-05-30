@@ -17,12 +17,25 @@ class Parser:
 
     def parse(self):
         self.args = self.parser.parse_args()
-        return self.__improved_arguments()
+        self.args = self.__improved_arguments()
+        return self.args
 
     def __improved_arguments(self):
         self.args.converted_output = os.path.join(self.args.input, self.args.converted_output)
         self.args.output = os.path.join(self.args.input, self.args.output)
         return self.args
+
+    def get_subjects(self):
+        subjects = os.listdir(self.args.input)
+        try:
+            subjects.remove('converted_output')
+        except ValueError:
+            pass
+        try:
+            subjects.remove('output')
+        except ValueError:
+            pass
+        return subjects
 
     def __str__(self) -> str:
         if not self.args:
