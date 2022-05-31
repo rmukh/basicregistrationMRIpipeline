@@ -12,8 +12,9 @@ class Parser:
                                  required=True, type=os.path.abspath)
         self.parser.add_argument('--converted_output', '-co', help='Output folder for converted files',
                                  default='converted_output')
-        self.parser.add_argument('--output', '-o', help='Output folder for processed files',
-                                 default='output')
+        self.parser.add_argument('--output', '-o', help='Output folder for processed files '
+                                                        '(bids_input/derivatives/pipeline_registration by default)',
+                                 default='derivatives/pipeline_registration')
 
     def parse(self):
         self.args = self.parser.parse_args()
@@ -32,7 +33,8 @@ class Parser:
         except ValueError:
             pass
         try:
-            subjects.remove('output')
+            # just to be sure that the converted_output folder is not included in case of error of smth else
+            subjects.remove('derivatives/pipeline_registration')
         except ValueError:
             pass
         return subjects
