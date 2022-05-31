@@ -26,7 +26,7 @@ class Parser:
         return self.args
 
     def get_subjects(self):
-        subjects = os.listdir(self.args.input)
+        subjects = [name for name in os.listdir(self.args.input) if os.path.isdir(os.path.join(self.args.input, name))]
         try:
             subjects.remove('converted_output')
         except ValueError:

@@ -11,7 +11,7 @@ class DICOM:
 
         # init variables
         self.converter = Dcm2niix()
-        self.converter.inputs.out_filename = "sub-%f_%z_task-%t_ses-%s_acq-%s_run_%t_%t"
+        self.converter.inputs.out_filename = "%t"
         self.converter.inputs.compress = 'y'
         self.converter.inputs.compression = 9
         self.converter.inputs.verbose = False
@@ -47,51 +47,54 @@ class DICOM:
                 self.partial_conversion = True
 
     def run_conversion(self):
-        if self.ask_convert.lower() == "n":
-            print("Please, deal with the conversion manually and rerun the script.")
-            exit(0)
-        elif self.ask_convert.lower() == "y":
-            print("Converting dicom files to nifti...")
-            mri_images = []
+        if len(self.dicom_subjects) > 0:
+            if self.ask_convert.lower() == "n":
+                print("Please, deal with the conversion manually and rerun the script.")
+                exit(0)
+            elif self.ask_convert.lower() == "y":
+                print("Converting dicom files to nifti...")
+                mri_images = []
 
-            # find the most deep directory within every subject
-            # to preserver the original directory structure
-            for subject in self.dicom_subjects:
-                for currentpath, folders, _ in os.walk(os.path.join(self.args.input, subject), topdown=True):
-                    if not folders:
-                        subpath = os.path.relpath(currentpath, os.path.join(self.args.input, subject))
-                        mri_images.append(os.path.join(subject, subpath))
+                # find the most deep directory within every subject
+                # to preserver the original directory structure
+                for subject in self.dicom_subjects:
+                    for currentpath, folders, _ in os.walk(os.path.join(self.args.input, subject), topdown=True):
+                        if not folders:
+                            subpath = os.path.relpath(currentpath, os.path.join(self.args.input, subject))
+                            mri_images.append(os.path.join(subject, subpath))
 
-            # iterate over all dicom files with a preserved structure and convert them to nifti
-            for image in mri_images:
-                self.converter.inputs.source_dir = os.path.join(self.args.input, image)
-                if self.partial_conversion:
-                    self.converter.inputs.output_dir = os.path.join(self.args.input, image)
-                else:
-                    if not os.path.exists(os.path.join(self.args.converted_output, image)):
-                        os.makedirs(os.path.join(self.args.converted_output, image))
-                    self.converter.inputs.output_dir = os.path.join(self.args.converted_output, image)
+                # iterate over all dicom files with a preserved structure and convert them to nifti
+                for image in mri_images:
+                    self.converter.inputs.source_dir = os.path.join(self.args.input, image)
+                    if self.partial_conversion:
+                        self.converter.inputs.output_dir = os.path.join(self.args.input, image)
+                    else:
+                        if not os.path.exists(os.path.join(self.args.converted_output, image)):
+                            os.makedirs(os.path.join(self.args.converted_output, image))
+                        self.converter.inputs.output_dir = os.path.join(self.args.converted_output, image)
 
-                try:
-                    self.converter.run()
-                except OSError as e:
-                    if "No command" in str(e):
-                        self.__install_dcm2niix()
-                        exit(0)
-            print("Finished converting dicom files to nifti.")
+                    try:
+                        self.converter.run()
+                    except OSError as e:
+                        if "No command" in str(e):
+                            self.__install_dcm2niix()
+                            exit(0)
+                print("Finished converting dicom files to nifti.")
+            else:
+                print("Please, enter y or n.")
+                exit(0)
+
+            # delete the dicom files?
+            ask_delete = input("Delete DICOM files? (y/n): ")
+            if ask_delete.lower() == "y":
+                self.delete_dicoms(self.all_dicom_files)
+
+            if self.partial_conversion:
+                return self.args.input
+            else:
+                return self.args.converted_output
         else:
-            print("Please, enter y or n.")
-            exit(0)
-
-        # delete the dicom files?
-        ask_delete = input("Delete DICOM files? (y/n): ")
-        if ask_delete.lower() == "y":
-            self.delete_dicoms(self.all_dicom_files)
-
-        if self.partial_conversion:
             return self.args.input
-        else:
-            return self.args.converted_output
 
     @staticmethod
     def delete_dicoms(files):
