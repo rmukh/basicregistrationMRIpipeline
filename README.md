@@ -31,6 +31,8 @@ I recommend building MRtrix3 from the source (https://mrtrix.readthedocs.io/en/l
 ## TODO
 * [ ] Add registration from T1 to DWI
 * [ ] Add registration between T1 and T2 only
+* [ ] Add an option to disable certain artifacts removal steps
+* [ ] Add a global configuration file
 * [ ] Add packaging for the pipeline
 
 # Notes
