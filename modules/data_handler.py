@@ -74,6 +74,36 @@ def data_sink(out_path, subfolder):
     return ds
 
 
+def extract_pe_rt(meta_path):
+    from nipype.interfaces.io import JSONFileGrabber
+    from modules.utility_functions import get_single_element
+
+    meta_path = get_single_element(meta_path)
+    print("Meta path: {}".format(meta_path))
+    jsonSource = JSONFileGrabber()
+    jsonSource.inputs.in_file = meta_path
+
+    # extract needed attributes from json file, phase encoding direction, and total readout time
+    res = (jsonSource.run()).outputs.get()
+    if "PhaseEncodingDirection" in res:
+        phase_encoding_direction = res['PhaseEncodingDirection']
+    else:
+        phase_encoding_direction = "j"
+
+    if "TotalReadoutTime" in res:
+        total_readout_time = res['TotalReadoutTime']
+    else:
+        total_readout_time = 0.145
+    return phase_encoding_direction, total_readout_time
+
+
+def get_meta_parameters():
+    get_meta = Node(Function(input_names=["meta_path"],
+                             output_names=["pe", "rt"],
+                             function=extract_pe_rt), name="meta_parameters")
+    return get_meta
+
+
 def mif_input_combiner(num_threads=1):
     inputnode = Node(IdentityInterface(fields=["dwi", "bvec", "bval"]), name="inputnode")
     outputnode = Node(IdentityInterface(fields=["dwi"]), name="outputnode")
