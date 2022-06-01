@@ -1,9 +1,19 @@
 import json
 import os
 import shutil
+from pathlib import Path
 
 from bids.layout import BIDSLayout
 from bids.exceptions import BIDSValidationError
+
+
+def get_filename(fn):
+    fn = Path(fn)
+
+    while fn.suffix in {'.nii', '.gz', '.json', 'bval', 'bvec', 'tsv'}:
+        fn = fn.with_suffix('')
+
+    return fn.stem
 
 
 class BIDS:
@@ -17,6 +27,7 @@ class BIDS:
         self.subjects = subjects
 
         self.nifti_files = self.find_nifti_files(self.work_dir)
+        self.meta_files = self.find_meta_files(self.work_dir)
 
     @staticmethod
     def find_nifti_files(fld):
@@ -25,6 +36,16 @@ class BIDS:
         for root, _, files in os.walk(fld):
             for file in files:
                 if file.endswith(".nii.gz") or file.endswith(".nii"):
+                    found.append(os.path.join(root, file))
+        return found
+
+    @staticmethod
+    def find_meta_files(fld):
+        # find all meta files (.json, .bval, .bvec)
+        found = []
+        for root, _, files in os.walk(fld):
+            for file in files:
+                if any(file.endswith(ext) for ext in [".json", ".bval", ".bvec"]):
                     found.append(os.path.join(root, file))
         return found
 
@@ -152,13 +173,26 @@ class BIDS:
                     all_locals_dwi.append(dwi) if dwi is not None else None
 
                 # copy images to new folder in BIDS format
-                fn_new_t1 = new_sub + "_T1w.nii.gz"
-                fn_new_t2 = new_sub + "_T2w.nii.gz"
-                fn_new_dwi = new_sub + "_dwi.nii.gz"
+                t1_name = self.copy_images_to_bids(all_locals_t1, "anat", new_sub_folder, subj,
+                                                   new_sub + "_T1w.nii.gz")
+                t2_name = self.copy_images_to_bids(all_locals_t2, "anat", new_sub_folder, subj,
+                                                   new_sub + "_T2w.nii.gz")
+                dwi_name = self.copy_images_to_bids(all_locals_dwi, "dwi", new_sub_folder, subj,
+                                                    new_sub + "_dwi.nii.gz")
 
-                self.copy_2_bids(all_locals_t1, "anat", new_sub_folder, subj, fn_new_t1)
-                self.copy_2_bids(all_locals_t2, "anat", new_sub_folder, subj, fn_new_t2)
-                self.copy_2_bids(all_locals_dwi, "dwi", new_sub_folder, subj, fn_new_dwi)
+                # find metadata for MR images (.json and .bval/.bvec)
+                # and copy metadata to new folder in BIDS format
+                for f in self.meta_files:
+                    if t1_name in f and "json" in f:
+                        shutil.copy(f, os.path.join(new_sub_folder, "anat", new_sub + "_T1w.json"))
+                    if t2_name in f and "json" in f:
+                        shutil.copy(f, os.path.join(new_sub_folder, "anat", new_sub + "_T2w.json"))
+                    if dwi_name in f and "json" in f:
+                        shutil.copy(f, os.path.join(new_sub_folder, "dwi", new_sub + "_dwi.json"))
+                    if dwi_name in f and "bval" in f:
+                        shutil.copy(f, os.path.join(new_sub_folder, "dwi", new_sub + "_dwi.bval"))
+                    if dwi_name in f and "bvec" in f:
+                        shutil.copy(f, os.path.join(new_sub_folder, "dwi", new_sub + "_dwi.bvec"))
 
                 # clean up
                 shutil.rmtree(os.path.join(bids_folder, subj))
@@ -197,13 +231,15 @@ class BIDS:
         return None
 
     @staticmethod
-    def copy_2_bids(all_locals, data_type, new_sub_folder, subj, fn_new):
+    def copy_images_to_bids(all_locals, data_type, new_sub_folder, subj, fn_new):
         if len(all_locals) == 1:
             shutil.copy(all_locals[0], os.path.join(new_sub_folder, data_type, fn_new))
+            return get_filename(all_locals[0])
         elif len(all_locals) == 0:
             print(f"No T1 images found for subject {subj}!")
             print("You would need to fix this manually, "
                   "otherwise this subject won't be processed in the pipeline!")
+            return ""
         else:
             print(f"Multiple T1 images found for subject {subj}!")
             print("Please specify the index of which one you want to use.")
@@ -220,6 +256,7 @@ class BIDS:
                     break
 
             shutil.copy(all_locals[index_to_use], os.path.join(new_sub_folder, data_type, fn_new))
+            return get_filename(all_locals[index_to_use])
 
     def is_bids(self):
         return self.bids_ok
