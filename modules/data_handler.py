@@ -1,3 +1,5 @@
+import os.path
+
 from nipype.interfaces.io import BIDSDataGrabber, DataSink
 from nipype.pipeline.engine import Node
 
@@ -26,7 +28,8 @@ def data_source(path):
     return bg
 
 
-def data_sink(out_path):
+def data_sink(out_path, subfolder):
+    out = os.path.join(out_path, subfolder)
     ds = Node(DataSink(), name='data_sink')
-    ds.inputs.base_directory = out_path
+    ds.inputs.base_directory = out
     return ds

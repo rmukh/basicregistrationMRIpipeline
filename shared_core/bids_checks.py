@@ -50,7 +50,9 @@ class BIDS:
         return found
 
     def check_bids(self):
+        print(f"Checking {self.work_dir} ...")
         self.convert_to_bids = False
+
         # do checks
         try:
             self.layout = BIDSLayout(self.work_dir, validate=True)
@@ -125,6 +127,7 @@ class BIDS:
                     print("Please rerun and specify valid directory.")
                     exit(0)
 
+            self.work_dir = bids_folder
             print("What is the name of your dataset?")
             dataset_name = input("[My Dataset by default]: ")
             if dataset_name == "":
@@ -201,7 +204,7 @@ class BIDS:
                   " and DWI images will have a suffix '_dwi'.")
             with open(os.path.join(bids_folder, "mapping.json"), "w") as f:
                 f.write(json.dumps(new_subject_names))
-            print("We created a mapping.json file in the output directory.{}"
+            print("We created a mapping.json file in the output directory {}"
                   "".format(os.path.join(bids_folder, "mapping.json")))
             print("You can use it to map the subject names from the BIDS format to the original names.")
             self.check_bids()
@@ -260,3 +263,6 @@ class BIDS:
 
     def is_bids(self):
         return self.bids_ok
+
+    def get_work_dir(self):
+        return self.work_dir
