@@ -3,6 +3,7 @@ The basic structural and diffusion MRI registration with pre-processing pipeline
 
 # Usage
 `main.py -i <input folder (BIDS format or DICOM files)> -co <output folder for converted files (if you need to convert from DICOM to NIFTI)> -o <output folder for registration>`
+
 You can enable a debug mode by adding `-d`. In that case, the pipeline stops once any error happens.
 
 By default, the pipeline will create a folder *derivatives/pipeline_registration* within the input BIDS directory to comply with BIDS format
