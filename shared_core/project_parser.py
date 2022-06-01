@@ -15,6 +15,7 @@ class Parser:
         self.parser.add_argument('--output', '-o', help='Output folder for processed files '
                                                         '(bids_input/derivatives/pipeline_registration by default)',
                                  default='derivatives/pipeline_registration')
+        self.parser.add_argument('--debug', '-d', help='Debug mode', action='store_true')
 
     def parse(self):
         self.args = self.parser.parse_args()
