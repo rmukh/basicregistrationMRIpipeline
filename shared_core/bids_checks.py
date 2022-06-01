@@ -150,7 +150,7 @@ class BIDS:
             subjects_digits_len = len(str(len(self.subjects)))
             if subjects_digits_len == 1:
                 subjects_digits_len = 2
-            for ind, subj in enumerate(self.subjects):
+            for ind, subj in enumerate(self.subjects, start=1):
                 print(f"Processing subject {subj}")
                 new_ind = str(ind).zfill(subjects_digits_len)
                 new_sub = f"sub-{new_ind}"

@@ -6,7 +6,7 @@ from shared_core.project_parser import Parser
 from shared_core.dicom_conversion import DICOM
 from shared_core.bids_checks import BIDS
 
-from modules.data_handler import data_source, data_sink, mif_input_combiner
+from modules.data_handler import data_source, bids_grabber, data_sink, mif_input_combiner
 
 now = datetime.datetime.now()
 
@@ -30,11 +30,16 @@ subjects = bids.get_bids_subjects()
 out_folder = bids.get_work_dir()
 scrap_directory = op.join(out_folder, "scrap")
 
-source = data_source(out_folder)
-sink = data_sink(out_folder, args.output, subjects)
+# IO
+source_iterator = data_source(subjects)
+bids_source = bids_grabber(out_folder)
+sink = data_sink(out_folder, args.output)
 
+# main processing modules (workflows)
 combine_dwi = mif_input_combiner(args.ncpus)
 combine_dwi.base_dir = scrap_directory
+
+preprocess_dwi = preprocess_dwi_workflow(name="preproc_dwi")
 # dwi_noise = DenoiseDWI(32)
 # dwi_noise.base_dir = path_to_results
 # unringing = UnringingDWI(32)
@@ -59,9 +64,10 @@ if args.debug:
     wf.config['execution'] = {'stop_on_first_crash': 'True'}
 
 wf.connect([
-    (source, combine_dwi, [("dwi", "inputnode.files_in"),
-                           ("bvec", "inputnode.bvec_in"),
-                           ("bval", "inputnode.bval_in")])
+    (source_iterator, bids_source, [("subject", "subject")]),
+    (bids_source, combine_dwi, [("dwi", "inputnode.dwi"),
+                                ("bvec", "inputnode.bvec"),
+                                ("bval", "inputnode.bval")])
 ])
 
 # Run

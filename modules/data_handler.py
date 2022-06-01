@@ -2,13 +2,14 @@ import os.path
 
 from nipype.interfaces.io import BIDSDataGrabber, DataSink
 from nipype.pipeline.engine import Node, Workflow
-from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.utility import IdentityInterface, Function
 from nipype.interfaces.mrtrix3 import MRConvert
-from .mrtrix3_extra_interfaces import MRCAT
+
+from .utility_functions import get_single_element
 
 
-def data_source(path):
-    bg = Node(BIDSDataGrabber(), name='bids_source')
+def bids_grabber(path):
+    bg = BIDSDataGrabber()
     bg.inputs.base_dir = path
     bg.inputs.output_query = {
         "T1w": {
@@ -53,33 +54,56 @@ def data_source(path):
         },
     }
     bg.inputs.raise_on_empty = False
-    return bg
+    bg.inputs.unpack_single = True
+    bg_node = Node(bg, name="bids_grabber")
+    return bg_node
 
 
-def data_sink(out_path, subfolder, bids_subjects):
+def data_source(bids_subjects):
+    iterator_node = Node(IdentityInterface(fields=["subject"]),
+                         name="subject_iterator")
+    iterator_node.iterables = ("subject", bids_subjects)
+    iterator_node.inputs.subject = bids_subjects
+    return iterator_node
+
+
+def data_sink(out_path, subfolder):
     out = os.path.join(out_path, subfolder)
     ds = Node(DataSink(), name='data_sink')
     ds.inputs.base_directory = out
-    ds.iterables = ('subject', bids_subjects)
     return ds
 
 
 def mif_input_combiner(num_threads=1):
-    inputnode = Node(IdentityInterface(fields=["files_in", "bvec_in", "bval_in"]), name="inputnode")
-    outputnode = Node(IdentityInterface(fields=["dwi_out"]), name="outputnode")
+    inputnode = Node(IdentityInterface(fields=["dwi", "bvec", "bval"]), name="inputnode")
+    outputnode = Node(IdentityInterface(fields=["dwi"]), name="outputnode")
 
-    merge = Node(MRCAT(nthreads=num_threads), name="merger")
+    clean_path_node_dwi = Node(Function(input_names=["in_path"],
+                                        output_names=["out_path"],
+                                        function=get_single_element),
+                               name="clean_path_node_dwi")
+    clean_path_node_bvec = Node(Function(input_names=["in_path"],
+                                         output_names=["out_path"],
+                                         function=get_single_element),
+                                name="clean_path_node_bvec")
+    clean_path_node_bval = Node(Function(input_names=["in_path"],
+                                         output_names=["out_path"],
+                                         function=get_single_element),
+                                name="clean_path_node_bval")
+
     make_mif = Node(MRConvert(nthreads=num_threads), name="combined_mif_creator")
 
     wf = Workflow(name="MIF_combiner")
     wf.connect([
-        (inputnode, merge, [("files_in", "in_files")]),
+        (inputnode, clean_path_node_dwi, [("dwi", "in_path")]),
+        (inputnode, clean_path_node_bvec, [("bvec", "in_path")]),
+        (inputnode, clean_path_node_bval, [("bval", "in_path")]),
 
-        (merge, make_mif, [("out_file", "in_file")]),
-        (inputnode, make_mif, [("bvec_in", "in_bvec"),
-                               ("bval_in", "in_bval")]),
+        (clean_path_node_dwi, make_mif, [("out_path", "in_file")]),
+        (clean_path_node_bvec, make_mif, [("out_path", "in_bvec")]),
+        (clean_path_node_bval, make_mif, [("out_path", "in_bval")]),
 
-        (make_mif, outputnode, [("out_file", "dwi_out")]),
+        (make_mif, outputnode, [("out_file", "dwi")]),
     ])
 
     return wf
