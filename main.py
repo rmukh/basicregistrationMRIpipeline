@@ -7,6 +7,7 @@ from shared_core.dicom_conversion import DICOM
 from shared_core.bids_checks import BIDS
 
 from modules.data_handler import data_source, bids_grabber, data_sink, mif_input_combiner
+from modules.preprocesses import preprocess_dwi_workflow
 
 now = datetime.datetime.now()
 
@@ -39,7 +40,7 @@ sink = data_sink(out_folder, args.output)
 combine_dwi = mif_input_combiner(args.ncpus)
 combine_dwi.base_dir = scrap_directory
 
-preprocess_dwi = preprocess_dwi_workflow(name="preproc_dwi")
+preprocess_dwi = preprocess_dwi_workflow(args.ncpus)
 # dwi_noise = DenoiseDWI(32)
 # dwi_noise.base_dir = path_to_results
 # unringing = UnringingDWI(32)

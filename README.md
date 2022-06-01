@@ -25,8 +25,12 @@ For now, you have to install all the dependencies manually.
 * [dcm2nixx (optionally)](https://github.com/rordenlab/dcm2niix)
 * [MRtrix3](https://www.mrtrix.org/)
 * [ANTs](http://stnava.github.io/ANTs/)
+* [FSL](https://fsl.fmrib.ox.ac.uk/)
 
 I recommend building MRtrix3 from the source (https://mrtrix.readthedocs.io/en/latest/installation/build_from_source.html), but pre-build version should work as well.
+
+I recommend to spend time and configure fsl with CUDA. It will save you a lot of time. The latest version of eddy is *eddy_cuda9.1* and requires CUDA 9.1. If you already have a CUDA of some other version, you can install 9.1 along with it. Just make sure you have added it to the $PATH and $LD_LIBRARY_PATH environment variables.
+The details at https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddy/UsersGuide
 
 ## TODO
 * [ ] Add registration from T1 to DWI
@@ -36,4 +40,6 @@ I recommend building MRtrix3 from the source (https://mrtrix.readthedocs.io/en/l
 * [ ] Add packaging for the pipeline
 
 # Notes
+I've tested it with ADNI dataset. DICOM -> NIFTI -> BIDS works well.
+
 You can find additional details here: https://rinatm.com/basic-dmri-registration-pipeline/
