@@ -1,7 +1,14 @@
+import datetime
+import os.path as op
+from nipype.pipeline.engine import Workflow
+
 from shared_core.project_parser import Parser
 from shared_core.dicom_conversion import DICOM
 from shared_core.bids_checks import BIDS
-from nipype.interfaces.io import BIDSDataGrabber
+
+from modules.data_handler import data_source, data_sink, mif_input_combiner
+
+now = datetime.datetime.now()
 
 parser = Parser()
 args = parser.parse()
@@ -17,26 +24,47 @@ out_folder = dicom.run_conversion()
 bids = BIDS(out_folder, subjects)
 bids.run_check()
 if bids.is_bids():
-    print("BIDS compliant!")
+    print("BIDS compliant dataset!")
+subjects = bids.get_bids_subjects()
 
-# bg = BIDSDataGrabber()
-# bg.inputs.base_dir = test_path
-# bg.inputs.output_query = {
-#     "T1w": {
-#         "datatype": "anat",
-#         "suffix": "T1w",
-#         "extension": ["nii", ".nii.gz"],
-#     },
-#     "T2w": {
-#         "datatype": "anat",
-#         "suffix": "T2w",
-#         "extension": ["nii", ".nii.gz"],
-#     },
-#     "dwi": {
-#         "datatype": "dwi",
-#         "suffix": "dwi",
-#         "extension": ["nii", ".nii.gz"],
-#     },
-# }
-# bg.inputs.raise_on_empty = False
-# results = bg.run()
+out_folder = bids.get_work_dir()
+scrap_directory = op.join(out_folder, "scrap")
+
+source = data_source(out_folder)
+sink = data_sink(out_folder, args.output, subjects)
+
+combine_dwi = mif_input_combiner(args.ncpus)
+combine_dwi.base_dir = scrap_directory
+# dwi_noise = DenoiseDWI(32)
+# dwi_noise.base_dir = path_to_results
+# unringing = UnringingDWI(32)
+# unringing.base_dir = path_to_results
+# eddy = EddyCorr(32)
+# eddy.base_dir = path_to_results
+# bias = BiasCorr(32)
+# bias.base_dir = path_to_results
+# final_dwi_mask = BrainMask(32)
+# final_dwi_mask.base_dir = path_to_results
+# t2_mask = T2Mask(32)
+# t2_mask.base_dir = path_to_results
+# labls = FSlabels(32)
+# labls.base_dir = path_to_results
+# final_merge = FinalMerge()
+# final_merge.base_dir = path_to_results
+#
+
+print(f"Starting workflow with {args.ncpus} threads")
+wf = Workflow(name="adni", base_dir=scrap_directory)
+if args.debug:
+    wf.config['execution'] = {'stop_on_first_crash': 'True'}
+
+wf.connect([
+    (source, combine_dwi, [("dwi", "inputnode.files_in"),
+                           ("bvec", "inputnode.bvec_in"),
+                           ("bval", "inputnode.bval_in")])
+])
+
+# Run
+wf.run()
+
+print("Total time: ", str(datetime.datetime.now() - now))

@@ -15,6 +15,9 @@ class Parser:
         self.parser.add_argument('--output', '-o', help='Output subfolder for the processed data'
                                                         '(<input>/derivatives/pipeline_registration by default)',
                                  default=os.path.join('derivatives', 'pipeline_registration'))
+        self.parser.add_argument('--ncpus', '-nc', help='Number of threads to use '
+                                                        'for processing (default max available)',
+                                 default=os.cpu_count(), type=int)
         self.parser.add_argument('--debug', '-d', help='Debug mode', action='store_true')
 
     def parse(self):
@@ -27,6 +30,13 @@ class Parser:
         self.args.output = os.path.join(self.args.input, self.args.output)
         return self.args
 
+    @staticmethod
+    def _try_remove(subj, path):
+        try:
+            subj.remove(path)
+        except (FileNotFoundError, ValueError):
+            pass
+
     def get_subjects(self):
         subjects = []
         try:
@@ -36,15 +46,10 @@ class Parser:
             print("Not a valid input folder!")
             exit(0)
 
-        try:
-            subjects.remove('converted_output')
-        except ValueError:
-            pass
-        try:
-            # just to be sure that the converted_output folder is not included in case of error of smth else
-            subjects.remove('derivatives/pipeline_registration')
-        except ValueError:
-            pass
+        self._try_remove(subjects, 'converted_output')
+        self._try_remove(subjects, 'scrap')
+        self._try_remove(subjects, 'derivatives')
+
         return subjects
 
     def __str__(self) -> str:

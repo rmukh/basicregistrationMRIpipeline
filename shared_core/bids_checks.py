@@ -25,6 +25,7 @@ class BIDS:
 
         self.work_dir = work_dir
         self.subjects = subjects
+        self.bids_subjects = []
 
         self.nifti_files = self.find_nifti_files(self.work_dir)
         self.meta_files = self.find_meta_files(self.work_dir)
@@ -71,7 +72,8 @@ class BIDS:
                     exit(0)
 
         if not self.convert_to_bids:
-            self.n_subjects_bids = len(self.layout.get_subjects())
+            self.bids_subjects = self.layout.get_subjects()
+            self.n_subjects_bids = len(self.bids_subjects)
 
         if self.n_subjects_bids == 0 and len(self.nifti_files) > 1:
             print("We found NIFTI files in the provided input directory, but no subjects in the BIDS layout.")
@@ -266,3 +268,6 @@ class BIDS:
 
     def get_work_dir(self):
         return self.work_dir
+
+    def get_bids_subjects(self):
+        return self.bids_subjects
