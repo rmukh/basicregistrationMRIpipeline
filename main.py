@@ -63,11 +63,15 @@ wf.connect([
     (bids_source, preprocess_anat, [("T1w", "inputnode.t1"),
                                     ("T2w", "inputnode.t2")]),
 
-    (preprocess_dwi, registration, [
-                             ("outputnode.mean_b0", "inputnode.mean_b0"),
+    (preprocess_dwi, registration, [("outputnode.mean_b0", "inputnode.mean_b0"),
                                     ("outputnode.dwi_nifti", "inputnode.dwi_nifti")]),
     (preprocess_anat, registration, [("outputnode.t1", "inputnode.t1"),
-                                        ("outputnode.t2", "inputnode.t2")])
+                                     ("outputnode.t2", "inputnode.t2")]),
+
+    (registration, sink, [("outputnode.dwi", "dwi.@dwi"),
+                          ("outputnode.t2", "anat.@t2")]),
+    (preprocess_dwi, sink, [("outputnode.bvec", "dwi.@dwi_bvec"),
+                            ("outputnode.bval", "dwi.@dwi_bval")])
 ])
 
 # Run

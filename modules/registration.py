@@ -28,7 +28,7 @@ def registration_workflow(num_threads=1):
                                      num_threads=num_threads,
                                      float=True,
                                      output_transform_prefix="b0ToT2_",
-                                     output_warped_image='warped.nii.gz',
+                                     output_warped_image='warped_b0_to_T2.nii.gz',
                                      output_inverse_warped_image='inverse_warped.nii.gz'),
                         name="b0_to_T2")
 
@@ -52,7 +52,7 @@ def registration_workflow(num_threads=1):
                                      num_threads=num_threads,
                                      float=True,
                                      output_transform_prefix="T2ToT1_",
-                                     output_warped_image='warped.nii.gz',
+                                     output_warped_image='warped_t2_to_t1.nii.gz',
                                      output_inverse_warped_image='inverse_warped.nii.gz'),
                         name="T2_to_T1")
 
