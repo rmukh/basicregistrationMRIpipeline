@@ -8,6 +8,7 @@ from shared_core.bids_checks import BIDS
 
 from modules.data_handler import data_source, bids_grabber, data_sink, mif_input_combiner, get_meta_parameters
 from modules.preprocesses import preprocess_dwi_workflow, preprocess_anat_workflow
+from modules.registration import registration_workflow
 
 now = datetime.datetime.now()
 
@@ -40,25 +41,10 @@ sink = data_sink(out_folder, args.output)
 combine_dwi = mif_input_combiner(args.ncpus)
 combine_dwi.base_dir = scrap_directory
 
-preprocess_dwi = preprocess_dwi_workflow(args.ncpus)
 meta_parameters = get_meta_parameters()
+preprocess_dwi = preprocess_dwi_workflow(args.ncpus)
 preprocess_anat = preprocess_anat_workflow(args.ncpus)
-# dwi_noise = DenoiseDWI(32)
-# dwi_noise.base_dir = path_to_results
-# unringing = UnringingDWI(32)
-# unringing.base_dir = path_to_results
-# eddy = EddyCorr(32)
-# eddy.base_dir = path_to_results
-# bias = BiasCorr(32)
-# bias.base_dir = path_to_results
-# final_dwi_mask = BrainMask(32)
-# final_dwi_mask.base_dir = path_to_results
-# t2_mask = T2Mask(32)
-# t2_mask.base_dir = path_to_results
-# labls = FSlabels(32)
-# labls.base_dir = path_to_results
-# final_merge = FinalMerge()
-# final_merge.base_dir = path_to_results
+registration = registration_workflow(args.ncpus)
 
 print(f"Starting workflow with {args.ncpus} threads")
 wf = Workflow(name="pipeline_registration", base_dir=scrap_directory)
@@ -75,7 +61,13 @@ wf.connect([
     (meta_parameters, preprocess_dwi, [("pe", "inputnode.pe"),
                                        ("rt", "inputnode.rt")]),
     (bids_source, preprocess_anat, [("T1w", "inputnode.t1"),
-                                    ("T2w", "inputnode.t2")])
+                                    ("T2w", "inputnode.t2")]),
+
+    (preprocess_dwi, registration, [
+                             ("outputnode.mean_b0", "inputnode.mean_b0"),
+                                    ("outputnode.dwi_nifti", "inputnode.dwi_nifti")]),
+    (preprocess_anat, registration, [("outputnode.t1", "inputnode.t1"),
+                                        ("outputnode.t2", "inputnode.t2")])
 ])
 
 # Run
