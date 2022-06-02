@@ -3,7 +3,7 @@ import os.path
 from nipype.interfaces.io import BIDSDataGrabber, DataSink
 from nipype.pipeline.engine import Node, Workflow
 from nipype.interfaces.utility import IdentityInterface, Function
-from nipype.interfaces.mrtrix3 import MRConvert
+from nipype.interfaces.mrtrix3.utils import MRConvert
 
 from .utility_functions import get_single_element
 

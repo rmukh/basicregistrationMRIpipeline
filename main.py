@@ -58,10 +58,9 @@ meta_parameters = get_meta_parameters()
 # labls.base_dir = path_to_results
 # final_merge = FinalMerge()
 # final_merge.base_dir = path_to_results
-#
 
 print(f"Starting workflow with {args.ncpus} threads")
-wf = Workflow(name="adni", base_dir=scrap_directory)
+wf = Workflow(name="pipeline_registration", base_dir=scrap_directory)
 if args.debug:
     wf.config['execution'] = {'stop_on_first_crash': 'True'}
 
@@ -70,7 +69,10 @@ wf.connect([
     (bids_source, combine_dwi, [("dwi", "inputnode.dwi"),
                                 ("bvec", "inputnode.bvec"),
                                 ("bval", "inputnode.bval")]),
-    (bids_source, meta_parameters, [("dwi_meta", "meta_path")])
+    (bids_source, meta_parameters, [("dwi_meta", "meta_path")]),
+    (combine_dwi, preprocess_dwi, [("outputnode.dwi", "inputnode.dwi")]),
+    (meta_parameters, preprocess_dwi, [("pe", "inputnode.pe"),
+                                       ("rt", "inputnode.rt")])
 ])
 
 # Run
