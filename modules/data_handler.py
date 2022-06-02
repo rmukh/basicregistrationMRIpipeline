@@ -74,7 +74,8 @@ def data_sink(out_path, subfolder) -> Node:
     ds.inputs.substitutions = [('_subject_', 'sub-'),
                                ('_session_', 'ses-'),
                                ('warped_t2_to_t1', '_T2w'),
-                               ('warped_dwi', '_dwi')]
+                               ('warped_dwi', '_dwi'),
+                               ('noise_corrected_corrected','')]
     return ds
 
 
