@@ -1,5 +1,4 @@
 import os.path
-from typing import Tuple
 
 from nipype.interfaces.io import BIDSDataGrabber, DataSink
 from nipype.pipeline.engine import Node, Workflow
@@ -79,7 +78,7 @@ def data_sink(out_path, subfolder) -> Node:
     return ds
 
 
-def extract_pe_rt(meta_path) -> Tuple[str, float]:
+def extract_pe_rt(meta_path):
     from nipype.interfaces.io import JSONFileGrabber
     from modules.utility_functions import get_single_element
 
