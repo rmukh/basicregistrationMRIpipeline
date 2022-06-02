@@ -7,7 +7,7 @@ from shared_core.dicom_conversion import DICOM
 from shared_core.bids_checks import BIDS
 
 from modules.data_handler import data_source, bids_grabber, data_sink, mif_input_combiner, get_meta_parameters
-from modules.preprocesses import preprocess_dwi_workflow
+from modules.preprocesses import preprocess_dwi_workflow, preprocess_anat_workflow
 
 now = datetime.datetime.now()
 
@@ -42,6 +42,7 @@ combine_dwi.base_dir = scrap_directory
 
 preprocess_dwi = preprocess_dwi_workflow(args.ncpus)
 meta_parameters = get_meta_parameters()
+preprocess_anat = preprocess_anat_workflow(args.ncpus)
 # dwi_noise = DenoiseDWI(32)
 # dwi_noise.base_dir = path_to_results
 # unringing = UnringingDWI(32)
@@ -72,7 +73,9 @@ wf.connect([
     (bids_source, meta_parameters, [("dwi_meta", "meta_path")]),
     (combine_dwi, preprocess_dwi, [("outputnode.dwi", "inputnode.dwi")]),
     (meta_parameters, preprocess_dwi, [("pe", "inputnode.pe"),
-                                       ("rt", "inputnode.rt")])
+                                       ("rt", "inputnode.rt")]),
+    (bids_source, preprocess_anat, [("T1w", "inputnode.t1"),
+                                    ("T2w", "inputnode.t2")])
 ])
 
 # Run

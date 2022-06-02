@@ -73,3 +73,55 @@ def preprocess_dwi_workflow(num_threads=1):
     ])
 
     return wf
+
+
+def preprocess_anat_workflow(num_threads=1):
+    from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
+    from nipype.pipeline.engine import Node, Workflow
+    from nipype.interfaces.utility import IdentityInterface, Function
+    from modules.utility_functions import get_single_element
+
+    inputnode = Node(IdentityInterface(fields=["t1", "t2"]), name="inputnode")
+    outputnode = Node(IdentityInterface(fields=["t1", "t2"]), name="outputnode")
+
+    clean_path_node_t1 = Node(Function(input_names=["in_path"],
+                                       output_names=["out_path"],
+                                       function=get_single_element),
+                              name="clean_path_node_t1")
+    clean_path_node_t2 = Node(Function(input_names=["in_path"],
+                                       output_names=["out_path"],
+                                       function=get_single_element),
+                              name="clean_path_node_t2")
+
+    # non-local means with Rician denoising correction
+    denoise_t1 = Node(DenoiseImage(dimension=3, noise_model='Rician', shrink_factor=2,
+                                   num_threads=num_threads),
+                      name="denoising_t1")
+    denoise_t2 = Node(DenoiseImage(dimension=3, noise_model='Rician', shrink_factor=2,
+                                   num_threads=num_threads),
+                      name="denoising_t2")
+
+    # N4 bias correction
+    n4_t1 = Node(N4BiasFieldCorrection(dimension=3, n_iterations=[300, 150, 75, 50],
+                                       convergence_threshold=1e-6, num_threads=num_threads),
+                 name="n4_t1")
+    n4_t2 = Node(N4BiasFieldCorrection(dimension=3, n_iterations=[300, 150, 75, 50],
+                                       convergence_threshold=1e-6, num_threads=num_threads),
+                 name="n4_t2")
+
+    wf = Workflow(name="PreprocessANAT")
+    wf.connect([
+        (inputnode, clean_path_node_t1, [("t1", "in_path")]),
+        (inputnode, clean_path_node_t2, [("t2", "in_path")]),
+
+        (clean_path_node_t1, denoise_t1, [("out_path", "input_image")]),
+        (denoise_t1, n4_t1, [("output_image", "input_image")]),
+
+        (clean_path_node_t2, denoise_t2, [("out_path", "input_image")]),
+        (denoise_t2, n4_t2, [("output_image", "input_image")]),
+
+        (n4_t1, outputnode, [("output_image", "t1")]),
+        (n4_t2, outputnode, [("output_image", "t2")])
+    ])
+
+    return wf
