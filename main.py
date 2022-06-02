@@ -69,7 +69,8 @@ wf.connect([
                                     ("outputnode.dwi_nifti", "inputnode.dwi_nifti")]),
     (preprocess_anat, registration, [("outputnode.t1", "inputnode.t1"),
                                      ("outputnode.t2", "inputnode.t2")]),
-
+    
+    (preprocess_anat, sink, [("outputnode.t1", "dwi.@t1")]),
     (registration, sink, [("outputnode.dwi", "dwi.@dwi"),
                           ("outputnode.t2", "anat.@t2")]),
     (preprocess_dwi, sink, [("outputnode.bvec", "dwi.@dwi_bvec"),
