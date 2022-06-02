@@ -33,6 +33,7 @@ I recommend to spend time and configure fsl with CUDA. It will save you a lot of
 The details at https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddy/UsersGuide
 
 ## TODO
+* [ ] Add direct registration without T2
 * [ ] Add registration from T1 to DWI
 * [ ] Add registration between T1 and T2 only
 * [ ] Add an option to disable certain artifacts removal steps
