@@ -71,6 +71,10 @@ def data_sink(out_path, subfolder):
     out = os.path.join(out_path, subfolder)
     ds = Node(DataSink(), name='data_sink')
     ds.inputs.base_directory = out
+    ds.inputs.substitutions = [('_subject_', 'sub-'),
+                               ('_session_', 'ses-'),
+                               ('warped_t2_to_t1', '_T2w'),
+                               ('warped_dwi', '_dwi')]
     return ds
 
 
