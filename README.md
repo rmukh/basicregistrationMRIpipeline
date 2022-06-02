@@ -36,6 +36,7 @@ The details at https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/eddy/UsersGuide
 * [ ] Add direct registration without T2
 * [ ] Add registration from T1 to DWI
 * [ ] Add registration between T1 and T2 only
+* [ ] Add an option to compute masks
 * [ ] Add an option to disable certain artifacts removal steps
 * [ ] Add a global configuration file
 * [ ] Add packaging for the pipeline
