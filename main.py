@@ -1,5 +1,7 @@
 import datetime
 import os.path as op
+import shutil
+
 from nipype.pipeline.engine import Workflow
 
 from shared_core.project_parser import Parser
@@ -78,3 +80,13 @@ wf.connect([
 wf.run()
 
 print("Total time: ", str(datetime.datetime.now() - now))
+if not args.final_cleanup:
+    yn = input("Do you want to delete the temporary directory? [y/n] ")
+    if yn.lower() == "y":
+        args.final_cleanup = True
+    else:
+        args.final_cleanup = False
+
+if args.final_cleanup:
+    print("Deleting temporary directory")
+    shutil.rmtree(scrap_directory)

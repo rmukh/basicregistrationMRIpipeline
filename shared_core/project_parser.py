@@ -18,6 +18,8 @@ class Parser:
         self.parser.add_argument('--ncpus', '-nc', help='Number of threads to use '
                                                         'for processing (default max available)',
                                  default=os.cpu_count(), type=int)
+        self.parser.add_argument('--final_cleanup', '-fc', help='Remove the temp folder after registration',
+                                 default=None, type=bool)
         self.parser.add_argument('--debug', '-d', help='Debug mode', action='store_true')
 
     def parse(self):
