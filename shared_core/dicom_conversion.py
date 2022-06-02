@@ -5,7 +5,7 @@ from nipype.interfaces.dcm2nii import Dcm2niix
 
 
 class DICOM:
-    def __init__(self, args, raw_subjects):
+    def __init__(self, args, raw_subjects) -> None:
         self.args = args
         self.raw_subjects = raw_subjects
 
@@ -24,7 +24,7 @@ class DICOM:
         self.dicom_subjects = self.__dicom_subjects()
         self.__deal_partial()
 
-    def __dicom_subjects(self):
+    def __dicom_subjects(self) -> list:
         # find the subjects that contain dicom files
         dicom_subjects = []
         for subject in self.raw_subjects:
@@ -34,7 +34,7 @@ class DICOM:
                 dicom_subjects.append(subject)
         return dicom_subjects
 
-    def __deal_partial(self):
+    def __deal_partial(self) -> None:
         if len(self.dicom_subjects) > 0:
             print("Found {} subjects with dicom files".format(len(self.dicom_subjects)))
             print("Subjects with dicom files: {}".format(self.dicom_subjects))
@@ -46,7 +46,7 @@ class DICOM:
                                          f"original folder: {self.args.input}? (y/n): ")
                 self.partial_conversion = True
 
-    def run_conversion(self):
+    def run_conversion(self) -> str:
         if len(self.dicom_subjects) > 0:
             if self.ask_convert.lower() == "n":
                 print("Please, deal with the conversion manually and rerun the script.")
@@ -97,14 +97,14 @@ class DICOM:
             return self.args.input
 
     @staticmethod
-    def delete_dicoms(files):
+    def delete_dicoms(files) -> None:
         print("Deleting dicom files...")
         for file in files:
             os.remove(file)
         print("Finished deleting dicom files.")
 
     @staticmethod
-    def __install_dcm2niix():
+    def __install_dcm2niix() -> None:
         print("Please install the latest version of dcm2niix!")
         print("You can find instructions on how to install it here: https://github.com/rordenlab/dcm2niix")
         print("After installing dcm2niix, rerun the script.")

@@ -22,24 +22,24 @@ class Parser:
                                  default=None, type=bool)
         self.parser.add_argument('--debug', '-d', help='Debug mode', action='store_true')
 
-    def parse(self):
+    def parse(self) -> argparse.Namespace:
         self.args = self.parser.parse_args()
         self.args = self._improved_arguments()
         return self.args
 
-    def _improved_arguments(self):
+    def _improved_arguments(self) -> argparse.Namespace:
         self.args.converted_output = os.path.join(self.args.input, self.args.converted_output)
         self.args.output = os.path.join(self.args.input, self.args.output)
         return self.args
 
     @staticmethod
-    def _try_remove(subj, path):
+    def _try_remove(subj, path) -> None:
         try:
             subj.remove(path)
         except (FileNotFoundError, ValueError):
             pass
 
-    def get_subjects(self):
+    def get_subjects(self) -> list:
         subjects = []
         try:
             subjects = [name for name in os.listdir(self.args.input) if

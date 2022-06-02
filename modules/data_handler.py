@@ -1,4 +1,5 @@
 import os.path
+from typing import Tuple
 
 from nipype.interfaces.io import BIDSDataGrabber, DataSink
 from nipype.pipeline.engine import Node, Workflow
@@ -8,7 +9,7 @@ from nipype.interfaces.mrtrix3.utils import MRConvert
 from .utility_functions import get_single_element
 
 
-def bids_grabber(path):
+def bids_grabber(path) -> Node:
     bg = BIDSDataGrabber()
     bg.inputs.base_dir = path
     bg.inputs.output_query = {
@@ -59,7 +60,7 @@ def bids_grabber(path):
     return bg_node
 
 
-def data_source(bids_subjects):
+def data_source(bids_subjects) -> Node:
     iterator_node = Node(IdentityInterface(fields=["subject"]),
                          name="subject_iterator")
     iterator_node.iterables = ("subject", bids_subjects)
@@ -67,7 +68,7 @@ def data_source(bids_subjects):
     return iterator_node
 
 
-def data_sink(out_path, subfolder):
+def data_sink(out_path, subfolder) -> Node:
     out = os.path.join(out_path, subfolder)
     ds = Node(DataSink(), name='data_sink')
     ds.inputs.base_directory = out
@@ -78,7 +79,7 @@ def data_sink(out_path, subfolder):
     return ds
 
 
-def extract_pe_rt(meta_path):
+def extract_pe_rt(meta_path) -> Tuple[str, float]:
     from nipype.interfaces.io import JSONFileGrabber
     from modules.utility_functions import get_single_element
 
@@ -95,20 +96,20 @@ def extract_pe_rt(meta_path):
         phase_encoding_direction = "j"
 
     if "TotalReadoutTime" in res:
-        total_readout_time = res['TotalReadoutTime']
+        total_readout_time = float(res['TotalReadoutTime'])
     else:
         total_readout_time = 0.145
     return phase_encoding_direction, total_readout_time
 
 
-def get_meta_parameters():
+def get_meta_parameters() -> Node:
     get_meta = Node(Function(input_names=["meta_path"],
                              output_names=["pe", "rt"],
                              function=extract_pe_rt), name="meta_parameters")
     return get_meta
 
 
-def mif_input_combiner(num_threads=1):
+def mif_input_combiner(num_threads=1) -> Workflow:
     inputnode = Node(IdentityInterface(fields=["dwi", "bvec", "bval"]), name="inputnode")
     outputnode = Node(IdentityInterface(fields=["dwi"]), name="outputnode")
 

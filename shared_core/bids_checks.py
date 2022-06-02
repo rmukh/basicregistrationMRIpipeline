@@ -2,12 +2,13 @@ import json
 import os
 import shutil
 from pathlib import Path
+from typing import Tuple, Optional
 
 from bids.layout import BIDSLayout
 from bids.exceptions import BIDSValidationError
 
 
-def get_filename(fn):
+def get_filename(fn) -> str:
     fn = Path(fn)
 
     while fn.suffix in {'.nii', '.gz', '.json', 'bval', 'bvec', 'tsv'}:
@@ -17,7 +18,7 @@ def get_filename(fn):
 
 
 class BIDS:
-    def __init__(self, work_dir, subjects):
+    def __init__(self, work_dir, subjects) -> None:
         self.layout = None
         self.convert_to_bids = False
         self.bids_ok = False
@@ -31,7 +32,7 @@ class BIDS:
         self.meta_files = self.find_meta_files(self.work_dir)
 
     @staticmethod
-    def find_nifti_files(fld):
+    def find_nifti_files(fld) -> list:
         # find all NIFTI files
         found = []
         for root, _, files in os.walk(fld):
@@ -41,7 +42,7 @@ class BIDS:
         return found
 
     @staticmethod
-    def find_meta_files(fld):
+    def find_meta_files(fld) -> list:
         # find all meta files (.json, .bval, .bvec)
         found = []
         for root, _, files in os.walk(fld):
@@ -50,7 +51,7 @@ class BIDS:
                     found.append(os.path.join(root, file))
         return found
 
-    def check_bids(self):
+    def check_bids(self) -> None:
         print(f"Checking {self.work_dir} ...")
         self.convert_to_bids = False
 
@@ -108,7 +109,7 @@ class BIDS:
             print("OK BIDS format.")
             self.bids_ok = True
 
-    def run_check(self):
+    def run_check(self) -> None:
         self.check_bids()
 
         if self.convert_to_bids:
@@ -212,7 +213,7 @@ class BIDS:
             self.check_bids()
 
     @staticmethod
-    def ask_modality(modality, pattern_examples):
+    def ask_modality(modality, pattern_examples) -> Tuple[bool, str]:
         is_modality = False
         patterns = None
 
@@ -228,7 +229,7 @@ class BIDS:
         return is_modality, patterns
 
     @staticmethod
-    def find_modality_for_subject(is_used, patterns, subj, f):
+    def find_modality_for_subject(is_used, patterns, subj, f) -> Optional[str]:
         if is_used:
             for pattern in patterns.split(","):
                 if pattern.strip() in f and subj in f:
@@ -236,7 +237,7 @@ class BIDS:
         return None
 
     @staticmethod
-    def copy_images_to_bids(all_locals, data_type, new_sub_folder, subj, fn_new):
+    def copy_images_to_bids(all_locals, data_type, new_sub_folder, subj, fn_new) -> str:
         if len(all_locals) == 1:
             shutil.copy(all_locals[0], os.path.join(new_sub_folder, data_type, fn_new))
             return get_filename(all_locals[0])
@@ -263,11 +264,11 @@ class BIDS:
             shutil.copy(all_locals[index_to_use], os.path.join(new_sub_folder, data_type, fn_new))
             return get_filename(all_locals[index_to_use])
 
-    def is_bids(self):
+    def is_bids(self) -> bool:
         return self.bids_ok
 
-    def get_work_dir(self):
+    def get_work_dir(self) -> str:
         return self.work_dir
 
-    def get_bids_subjects(self):
+    def get_bids_subjects(self) -> list:
         return self.bids_subjects
