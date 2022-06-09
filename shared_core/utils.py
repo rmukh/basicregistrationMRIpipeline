@@ -1,5 +1,8 @@
 import functools
 import datetime
+from typing import TypeVar, Callable, cast
+
+TCallable = TypeVar("TCallable", bound=Callable)
 
 
 def continuously_ask_user_yn(question: str) -> bool:
@@ -18,7 +21,7 @@ def continuously_ask_user_yn(question: str) -> bool:
             print("Invalid answer, please try again")
 
 
-def execution_time(func):
+def execution_time(func: TCallable) -> TCallable:
     """
     Decorator to measure the execution time of a function.
     """
@@ -29,4 +32,4 @@ def execution_time(func):
         result = func(*args, **kwargs)
         print("Total run time: ", str(datetime.datetime.now() - start))
         return result
-    return wrapper
+    return cast(TCallable, wrapper)
