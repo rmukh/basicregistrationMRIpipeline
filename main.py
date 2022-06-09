@@ -83,7 +83,7 @@ def main():
     wf.run()
 
     if not args.final_cleanup:
-        args.final_cleanup = continuously_ask_user_yn("Do you want to delete the temporary directory?")
+        args.final_cleanup = continuously_ask_user_yn("Do you want to delete the temporary directory?", True)
 
     # if the user selected deletion, then delete the temporary directory
     if args.final_cleanup:

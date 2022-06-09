@@ -7,6 +7,8 @@ from typing import Tuple, Optional
 from bids.layout import BIDSLayout
 from bids.exceptions import BIDSValidationError
 
+from shared_core.utils import continuously_ask_user_yn
+
 
 def get_filename(fn) -> str:
     fn = Path(fn)
@@ -65,8 +67,8 @@ class BIDS:
                 print("Probably your dataset is not valid BIDS dataset.")
                 print("If your dataset is valid BIDS dataset, please create this file and try again.")
                 print("Otherwise, do you want to try this pipeline to convert your dataset into a BIDS format?")
-                yn = input("[y/n] ")
-                if yn.lower() == "y":
+                yn = continuously_ask_user_yn()
+                if yn == "y":
                     self.convert_to_bids = True
                 else:
                     print("Please make your dataset valid BIDS dataset and try again.")
@@ -79,8 +81,8 @@ class BIDS:
         if self.n_subjects_bids == 0 and len(self.nifti_files) > 1:
             print("We found NIFTI files in the provided input directory, but no subjects in the BIDS layout.")
             print("Do you want to try this pipeline to convert your dataset into a BIDS format?")
-            yn = input("[y/n] ")
-            if yn.lower() == "y":
+            yn = continuously_ask_user_yn()
+            if yn == "y":
                 self.convert_to_bids = True
             else:
                 print("Please make your dataset valid BIDS dataset and try again.")
@@ -93,8 +95,8 @@ class BIDS:
             print("Number of subjects in BIDS format is less than number of detected subjects in the input directory.")
             print("Please make sure that you have the correct BIDS layout.")
             print("If you want to continue processing only the detected subjects, please answer 'y'.")
-            bids_ask = input("[y/n] ")
-            if bids_ask.lower() == "y":
+            bids_ask = continuously_ask_user_yn()
+            if bids_ask == "y":
                 print("Continue processing only the detected subjects.")
                 self.bids_ok = True
             else:
@@ -218,8 +220,8 @@ class BIDS:
         patterns = None
 
         print(f"Do you have {modality} images?")
-        ask = input("[y/n] ")
-        if ask.lower() == "y":
+        ask = continuously_ask_user_yn()
+        if ask == "y":
             is_modality = True
             print("Please specify any distinct pattern either in folder or file name")
             print(f"we can use to identify {modality} images. It can be {pattern_examples}, etc.")

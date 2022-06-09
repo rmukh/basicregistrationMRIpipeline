@@ -5,18 +5,22 @@ from typing import TypeVar, Callable, cast
 TCallable = TypeVar("TCallable", bound=Callable)
 
 
-def continuously_ask_user_yn(question: str) -> bool:
+def continuously_ask_user_yn(question: str = "", return_bool: bool = False) -> bool or str:
     """
     Continuously ask the user for a valid answer until one is given.
     """
     question = question + " [y/n]: "
     while True:
         answer = input(question)
+        answer = answer.lower()
         if answer in ["y", "n"]:
-            if answer == "y":
-                return True
+            if return_bool:
+                if answer == "y":
+                    return True
+                else:
+                    return False
             else:
-                return False
+                return answer
         else:
             print("Invalid answer, please try again")
 

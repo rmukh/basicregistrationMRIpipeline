@@ -3,6 +3,8 @@ import os
 
 from nipype.interfaces.dcm2nii import Dcm2niix
 
+from shared_core.utils import continuously_ask_user_yn
+
 
 class DICOM:
     def __init__(self, args, raw_subjects) -> None:
@@ -42,8 +44,8 @@ class DICOM:
             if len(self.dicom_subjects) != len(self.raw_subjects):
                 # deal with a scenario when some the files are converted and some are not
                 print("The number of original subjects and the number of subjects with dicom files do not match!")
-                self.ask_convert = input(f"Convert all dicom files to nifti and store them in the "
-                                         f"original folder: {self.args.input}? (y/n): ")
+                self.ask_convert = continuously_ask_user_yn(f"Convert all dicom files to nifti and store them in the "
+                                                            f"original folder: {self.args.input}?")
                 self.partial_conversion = True
 
     def run_conversion(self) -> str:
@@ -85,8 +87,8 @@ class DICOM:
                 exit(0)
 
             # delete the dicom files?
-            ask_delete = input("Delete DICOM files? (y/n): ")
-            if ask_delete.lower() == "y":
+            ask_delete = continuously_ask_user_yn("Delete DICOM files?")
+            if ask_delete == "y":
                 self.delete_dicoms(self.all_dicom_files)
 
             if self.partial_conversion:
